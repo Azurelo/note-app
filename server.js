@@ -39,5 +39,13 @@ app.post('/api/notes', ({body}, res) => {
     .catch(err => res.status(500).json(err))
     })
 })
+//Bonus
+app.delete('/api/notes/:id', (req, res) => {
+    getNotes().then(oldNotes => {
+      let newNotes = oldNotes.filter(note => note.id !== req.params.id)
+      writeFile('db/db.json', JSON.stringify(newNotes)).then(() => res.json({msg: 'ok'}))
+      .catch(err => res.status(500).json(err))
+    })
+  })
 
 app.listen(PORT, () => console.log(`App listening on port: ${PORT}.`));
