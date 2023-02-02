@@ -12,9 +12,9 @@ const getNotes = () => {
 }
 
 const app = express();
-app.use(express.json());
-app.use(express.urlencoded({extended:false}));
 app.use(express.static('public'));
+app.use(express.urlencoded({extended:false}));
+app.use(express.json());
 
 //GET Routes
 app.get('/', (req, res) =>
@@ -32,12 +32,12 @@ app.get('/api/notes', (req, res) => {
     .catch(err => res.status(500).json(err))
     });
     
-    app.post('/api/notes', ({body}, res) => {
-      getNotes().then(oldNotes => {
-        const newNotes = [...oldNotes, {title: body.title, text: body.text, id: uuidv4()}]
-        writeFile('db/db.json', JSON.stringify(newNotes)).then(() => res.json({msg: 'ok'}))
-        .catch(err => res.status(500).json(err))
-      })
+app.post('/api/notes', ({body}, res) => {
+    getNotes().then(savedNotes => {
+    const newNotes = [...savedNotes, {title: body.title, text: body.text, id: uuidv4()}]
+    writeFile('db/db.json', JSON.stringify(newNotes)).then(() => res.json({msg: 'ok'}))
+    .catch(err => res.status(500).json(err))
     })
+})
 
 app.listen(PORT, () => console.log(`App listening on port: ${PORT}.`));
