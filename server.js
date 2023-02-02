@@ -6,12 +6,15 @@ const { v4: uuidv4 } = require('uuid');
 const readFile = util.promisify(fs.readFile);
 const writeFile = util.promisify(fs.writeFile);
 const PORT = process.env.PORT || 3001;
+const app = express();
 
-const getNotes = () => {
-  return readFile('db/db.json', 'utf-8').then(rawNotes => [].concat(JSON.parse(rawNotes)))
+//Read db and parse it using json
+const fetchNotes = () => {
+  return readFile('db/db.json', 'utf-8')
+  .then(rawNotes => [].concat(JSON.parse(rawNotes)))
 }
 
-const app = express();
+//Middleware
 app.use(express.static('public'));
 app.use(express.urlencoded({extended:false}));
 app.use(express.json());
@@ -28,12 +31,13 @@ app.get('/notes', (req, res) =>
 
 //Routing
 app.get('/api/notes', (req, res) => {
-    getNotes().then(notes => res.json(notes))
+    fetchNotes().then(notes => res.json(notes))
     .catch(err => res.status(500).json(err))
     });
     
 app.post('/api/notes', ({body}, res) => {
-    getNotes().then(savedNotes => {
+    fetchNotes()
+    .then(savedNotes => {
     const newNotes = [...savedNotes, {title: body.title, text: body.text, id: uuidv4()}]
     writeFile('db/db.json', JSON.stringify(newNotes)).then(() => res.json({msg: 'ok'}))
     .catch(err => res.status(500).json(err))
@@ -41,9 +45,11 @@ app.post('/api/notes', ({body}, res) => {
 })
 //Bonus
 app.delete('/api/notes/:id', (req, res) => {
-    getNotes().then(oldNotes => {
-      let newNotes = oldNotes.filter(note => note.id !== req.params.id)
-      writeFile('db/db.json', JSON.stringify(newNotes)).then(() => res.json({msg: 'ok'}))
+    fetchNotes().then(savedNotes => {
+      let newNotes = savedNotes
+      .filter(note => note.id !== req.params.id)
+      writeFile('db/db.json', JSON.stringify(newNotes))
+      .then(() => res.json({msg: 'ok'}))
       .catch(err => res.status(500).json(err))
     })
   })
